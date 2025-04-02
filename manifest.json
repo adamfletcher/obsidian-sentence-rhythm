@@ -5,6 +5,6 @@
 	"minAppVersion": "0.15.0",
 	"description": "Adds toggleable colored highlights to sentences based on their length so you can easily see the rhythm of your writing.",
 	"author": "Adam Fletcher",
-	"authorUrl": "https://github.com/adamfletcher/obsidian-sentence-rhythm",
+	"authorUrl": "https://adamfletcher.com",
 	"isDesktopOnly": false
 }
