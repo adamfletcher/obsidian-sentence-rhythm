@@ -1,4 +1,7 @@
-# Obsidian Sample Plugin
+# Sentence Rhymthn Plugin for Obsidian
+
+Inspired by [Gary Provost's advice on varying sentence length](https://www.aerogrammestudio.com/2014/08/05/this-sentence-has-five-words/)
+
 
 This is a sample plugin for Obsidian (https://obsidian.md).
 
