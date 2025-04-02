@@ -46,25 +46,6 @@ export default class SentenceRhythmPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		const ribbonIconEl = this.addRibbonIcon('ruler', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			this.settings.enabled = !this.settings.enabled;
-			this.saveSettings();
-		});
-
-		this.registerEvent(
-			this.app.workspace.on("editor-menu", (menu, editor, view) => {
-				menu.addItem((item) => {
-					item
-						.setTitle('Print file path 👈')
-						.setIcon('document')
-						.onClick(async () => {
-							console.log('hello');
-						});
-				});
-			})
-		);
-
 		this.addCommand({
 			id: 'toggle-sentence-highlighting',
 			name: 'Toggle highlighting',
