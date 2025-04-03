@@ -130,13 +130,18 @@ export default class SentenceRhythmPlugin extends Plugin {
 					});
 				}
 
-				const sentenceRegex = /(?<=^|\n| )[^.!?\n]+[.!?]+/g;
+				const sentenceRegex = /(?:^|\n| )[^.!?\n]+[.!?]+/g;
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {
 
-					const start = match.index;
-					const end = start + match[0].length;
+					let start;
+					if(match[0].startsWith(' ') || match[0].startsWith('\n')) {
+						start = match.index + 1;
+					} else {
+						start = match.index;
+					}
+					const end = start + match[0].length - 1;
 
 					if (skipRanges.some(range => start >= range.min && start <= range.max)) {
 						continue;
