@@ -135,7 +135,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 				while ((match = sentenceRegex.exec(text)) !== null) {
 
-					let start;
+					let start: number;
 					if(match[0].startsWith(' ') || match[0].startsWith('\n')) {
 						start = match.index + 1;
 					} else {
