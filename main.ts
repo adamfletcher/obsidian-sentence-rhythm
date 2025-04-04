@@ -90,7 +90,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 	createViewPlugin() {
 		const plugin = this;
 
-		class ExampleViewPlugin implements PluginValue {
+		class SentenceLengthViewPlugin implements PluginValue {
 			decorations: DecorationSet;
 
 			constructor(view: EditorView) {
@@ -177,8 +177,8 @@ export default class SentenceRhythmPlugin extends Plugin {
 			}
 		}
 
-		return ViewPlugin.fromClass(ExampleViewPlugin, {
-			decorations: (value: ExampleViewPlugin) => value.decorations,
+		return ViewPlugin.fromClass(SentenceLengthViewPlugin, {
+			decorations: (value: SentenceLengthViewPlugin) => value.decorations,
 		});
 	}
 }
