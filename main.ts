@@ -42,6 +42,7 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 
 export default class SentenceRhythmPlugin extends Plugin {
 	settings: SentenceRhythmPluginSettings;
+	forceViewUpdate: boolean;
 
 	async onload() {
 		await this.loadSettings();
@@ -81,6 +82,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.forceViewUpdate = true;
 		document.body.classList.toggle('sentence-length-highlighting-active', this.settings.enabled);
 		this.app.workspace.updateOptions();
 	}
@@ -96,8 +98,10 @@ export default class SentenceRhythmPlugin extends Plugin {
 			}
 
 			update(update: ViewUpdate) {
-				if (update.docChanged || update.viewportChanged || update.transactions.length > 0) {
+				
+				if (update.docChanged || update.viewportChanged || plugin.forceViewUpdate) {
 					this.decorations = this.buildDecorations(update.view);
+					plugin.forceViewUpdate = false;
 				}
 			}
 
