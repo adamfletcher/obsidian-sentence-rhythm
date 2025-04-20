@@ -211,11 +211,11 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 		new Setting(containerEl).setName('Colors').setDesc('Colors can be any valid CSS value').setHeading();
 
 		const colors: Record<string, string> = {
-			"xsColor": 'Extra Short',
+			"xsColor": 'Extra short',
 			"smColor": 'Short',
 			"mdColor": 'Medium',
 			"lgColor": 'Long',
-			"xlColor": 'Extra Long'
+			"xlColor": 'Extra long'
 		}
 
 		for (let key in colors) {
@@ -242,7 +242,7 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 		new Setting(containerEl).setName('Lengths').setDesc('Less than or equal to').setHeading();
 
 		const thresholds: Record<string, string> = {
-			"xsThreshold": 'Extra Short',
+			"xsThreshold": 'Extra short',
 			"smThreshold": 'Short',
 			"mdThreshold": 'Medium',
 			"lgThreshold": 'Long'
