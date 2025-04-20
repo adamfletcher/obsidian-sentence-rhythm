@@ -67,7 +67,11 @@ export default class SentenceRhythmPlugin extends Plugin {
 	}
 
 	onunload() {
-
+		document.documentElement.style.removeProperty("--sentence-length-highlight-color-xs");
+		document.documentElement.style.removeProperty("--sentence-length-highlight-color-sm");
+		document.documentElement.style.removeProperty("--sentence-length-highlight-color-md");
+		document.documentElement.style.removeProperty("--sentence-length-highlight-color-lg");
+		document.documentElement.style.removeProperty("--sentence-length-highlight-color-xl");
 	}
 
 
