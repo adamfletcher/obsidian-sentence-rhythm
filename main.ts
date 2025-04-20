@@ -11,7 +11,6 @@ import { RangeSetBuilder } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 
 interface SentenceRhythmPluginSettings {
-	mySetting: string;
 	xsColor: string,
 	smColor: string;
 	mdColor: string,
@@ -26,7 +25,6 @@ interface SentenceRhythmPluginSettings {
 }
 
 const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
-	mySetting: 'default',
 	xsColor: '#fff2c8',
 	smColor: '#eadbf6',
 	mdColor: '#c5f2cd',
