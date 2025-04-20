@@ -227,7 +227,7 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 					.setName(colors[key])
 					.setDesc(`(Default: ${DEFAULT_SETTINGS[typedKey]})`)
 
-					.addText(text => text
+					.addColorPicker(cp => cp
 						.setValue(this.plugin.settings[typedKey] as string)
 						.onChange(async (value) => {
 							(this.plugin.settings[typedKey] as string) = value;
