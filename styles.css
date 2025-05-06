@@ -11,22 +11,27 @@ body {
 
   body.sentence-length-highlighting-active .sentence-length-xs {
       background-color: var(--sentence-length-highlight-color-xs, rgba(255, 100, 100, 0.3));
+      color: var(--sentence-length-highlight-text-color);
   }
   
   body.sentence-length-highlighting-active .sentence-length-sm {
       background-color: var(--sentence-length-highlight-color-sm, rgba(255, 180, 100, 0.3));
+      color: var(--sentence-length-highlight-text-color);
   }
   
   body.sentence-length-highlighting-active .sentence-length-md {
       background-color: var(--sentence-length-highlight-color-md, rgba(100, 200, 255, 0.3));
+      color: var(--sentence-length-highlight-text-color);
   }
   
   body.sentence-length-highlighting-active .sentence-length-lg {
       background-color: var(--sentence-length-highlight-color-lg, rgba(180, 100, 255, 0.3));
+      color: var(--sentence-length-highlight-text-color);
   }
 
   body.sentence-length-highlighting-active .sentence-length-xl {
     background-color: var(--sentence-length-highlight-color-xl, rgba(180, 100, 255, 0.3));
+    color: var(--sentence-length-highlight-text-color);
 }
   
   /* Ensure highlights don't interfere too much with selection - this can likely remain unchanged */

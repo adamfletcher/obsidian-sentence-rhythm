@@ -16,6 +16,7 @@ interface SentenceRhythmPluginSettings {
 	mdColor: string,
 	lgColor: string,
 	xlColor: string,
+	textColor: string,
 	enabled: boolean,
 	xsThreshold: number,
 	smThreshold: number,
@@ -29,6 +30,7 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 	mdColor: '#c5f2cd',
 	lgColor: '#f9caca',
 	xlColor: '#d1f6f4',
+	textColor: '#222222',
 	enabled: false,
 	xsThreshold: 2,
 	smThreshold: 5,
@@ -64,6 +66,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 		document.documentElement.style.setProperty("--sentence-length-highlight-color-md", this.settings.mdColor);
 		document.documentElement.style.setProperty("--sentence-length-highlight-color-lg", this.settings.lgColor);
 		document.documentElement.style.setProperty("--sentence-length-highlight-color-xl", this.settings.xlColor);
+		document.documentElement.style.setProperty("--sentence-length-highlight-text-color", this.settings.textColor);
 	}
 
 	onunload() {
@@ -208,14 +211,15 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 
 
 
-		new Setting(containerEl).setName('Colors').setDesc('Colors can be any valid CSS value').setHeading();
+		new Setting(containerEl).setName('Colors').setHeading();
 
 		const colors: Record<string, string> = {
 			"xsColor": 'Extra short',
 			"smColor": 'Short',
 			"mdColor": 'Medium',
 			"lgColor": 'Long',
-			"xlColor": 'Extra long'
+			"xlColor": 'Extra long',
+			"textColor": 'Text color'
 		}
 
 		for (let key in colors) {
