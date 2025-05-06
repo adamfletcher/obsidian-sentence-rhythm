@@ -137,25 +137,67 @@ export default class SentenceRhythmPlugin extends Plugin {
 					});
 				}
 
-				const sentenceRegex = /(?:^|\n| )[^.!?\n]+[.!?]+/g;
+				//const sentenceRegex = /(?:^|\n| |。)[^.!?。\n]+[.!?。]+/g;
+				const sentenceRegex = /(?:^|\n|.|。)(?: {0,1})[^.!?\n。]+[.!?。]+[ ]{0,1}/g;
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {
 
 					let start: number;
+					let endOffset = 0;
 					if(match[0].startsWith(' ') || match[0].startsWith('\n')) {
 						start = match.index + 1;
+						endOffset--;
 					} else {
 						start = match.index;
 					}
-					const end = start + match[0].length - 1;
+
+					if(match[0].endsWith(' ')) {
+						endOffset--;
+					}
+
+					const end = start + match[0].length + endOffset;
 
 					if (skipRanges.some(range => start >= range.min && start <= range.max)) {
 						continue;
 					}
 
 					const sentence = match[0].trim();
-					const wordCount = sentence.split(/\s+/).filter(word => word.length > 0).length;
+					//const wordCount = sentence.split(/\s+/).filter(word => word.length > 0).length;
+
+					const latinAndNumbers = 'a-zA-Z0-9\\u00C0-\\u00FF\\u0100-\\u017F';
+					const baseLatinWord = `[${latinAndNumbers}]+`;
+					const latinWordWithApostrophe = `${baseLatinWord}(?:'${baseLatinWord})*`;
+
+					// Regular Expression Breakdown:
+					// ${latinWordWithApostrophe} : Matches one or more Latin/number chars, optionally followed by
+					//                              an apostrophe and more Latin/number chars (handles "it's", "O'Malley").
+					//                              (?:...) is a non-capturing group.
+					//                              * means the apostrophe part can appear zero or more times (handles "rock'n'roll").
+					// | : OR
+					// [\u4E00-\u9FFF] : Matches a CJK Unified Ideograph (most common Chinese, Japanese Kanji, Korean Hanja)
+					// | : OR
+					// [\u3040-\u309F] : Matches a Hiragana character (Japanese)
+					// | : OR
+					// [\u30A0-\u30FF] : Matches a Katakana character (Japanese)
+					// | : OR
+					// [\uAC00-\uD7A3] : Matches a Hangul Syllable (Korean)
+					// | : OR
+					// [\uF900-\uFAFF] : Matches a CJK Compatibility Ideograph
+					// | : OR
+					// [\uFF66-\uFF9F] : Matches Halfwidth Katakana (Japanese)
+					//
+					// Flags:
+					// g: Global match (find all occurrences)
+					// u: Unicode support (essential for matching characters outside the Basic Multilingual Plane and proper range interpretation)
+
+					const wordRegex = new RegExp(
+						`${latinWordWithApostrophe}|[\\u4E00-\\u9FFF]|[\\u3040-\\u309F]|[\\u30A0-\\u30FF]|[\\uAC00-\\uD7A3]|[\\uF900-\\uFAFF]|[\\uFF66-\\uFF9F]`,
+						'gu'
+					);
+					//const wordRegex = /[a-zA-Z0-9\u00C0-\u00FF\u0100-\u017F]+|[\u4E00-\u9FFF]|[\u3040-\u309F]|[\u30A0-\u30FF]|[\uAC00-\uD7A3]|[\uF900-\uFAFF]|[\uFF66-\uFF9F]/gu;
+					const matches = sentence.match(wordRegex);
+					const wordCount = matches ? matches.length : 0;
 
 					let category = '';
 					if (wordCount <= plugin.settings.xsThreshold) {
