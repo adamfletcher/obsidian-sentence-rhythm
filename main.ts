@@ -158,7 +158,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 					const end = start + match[0].length + endOffset;
 
-					if (skipRanges.some(range => start >= range.min && start <= range.max)) {
+					if (skipRanges.some(range => start <= range.max && end >= range.min)) {
 						continue;
 					}
 
