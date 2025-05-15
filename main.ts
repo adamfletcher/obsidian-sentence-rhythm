@@ -143,14 +143,14 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 				while ((match = sentenceRegex.exec(text)) !== null) {
 
-					let start: number;
-					let endOffset = 0;
-					if(match[0].startsWith(' ') || match[0].startsWith('\n')) {
-						start = match.index + 1;
-						endOffset--;
-					} else {
-						start = match.index;
-					}
+					
+					// Don't highlight:
+					// - Leading whitespace
+					// - Quote indentation (indicated by the > in markdown) 
+					let startOffset = match[0].length - match[0].replace(/^[\s>]*/, '').length;
+
+					let start = match.index + startOffset;
+					let endOffset = 0 - startOffset;
 
 					if(match[0].endsWith(' ')) {
 						endOffset--;
