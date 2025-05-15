@@ -138,7 +138,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 				}
 
 				//const sentenceRegex = /(?:^|\n| |。)[^.!?。\n]+[.!?。]+/g;
-				const sentenceRegex = /(?:^|\n|.|。)(?: {0,1})[^.!?\n。]+[.!?。]+[ ]{0,1}/g;
+				const sentenceRegex = /(?:^|\n|.|。)(?: {0,1})[^.!?\n。]+[.!?。]+["”」'’]*[ ]{0,1}/g;
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {
