@@ -167,7 +167,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 					const latinAndNumbers = 'a-zA-Z0-9\\u00C0-\\u00FF\\u0100-\\u017F';
 					const baseLatinWord = `[${latinAndNumbers}]+`;
-					const latinWordWithApostrophe = `${baseLatinWord}(?:'${baseLatinWord})*`;
+					const latinWordWithApostrophe = `${baseLatinWord}(?:['’]${baseLatinWord})*`;
 
 					// Regular Expression Breakdown:
 					// ${latinWordWithApostrophe} : Matches one or more Latin/number chars, optionally followed by
