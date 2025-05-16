@@ -22,6 +22,7 @@ interface SentenceRhythmPluginSettings {
 	smThreshold: number,
 	mdThreshold: number,
 	lgThreshold: number,
+	treatLineBreakAsSentenceEnd: boolean,
 }
 
 const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
@@ -36,6 +37,7 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 	smThreshold: 5,
 	mdThreshold: 10,
 	lgThreshold: 20,
+	treatLineBreakAsSentenceEnd: false,
 }
 
 export default class SentenceRhythmPlugin extends Plugin {
@@ -130,20 +132,25 @@ export default class SentenceRhythmPlugin extends Plugin {
 						from,
 						to,
 						enter(node) {
-							if ((node.name.includes("code") || node.name.includes("comment") || node.name.includes("link") || node.name.includes("url"))) {
+							if (node.name.includes("code") || node.name.includes("comment") || node.name.includes("link") || node.name.includes("url") || node.name.includes("header")) {
 								skipRanges.push({ min: node.from, max: node.to });
 							}
 						},
 					});
 				}
-
-				//const sentenceRegex = /(?:^|\n| |。)[^.!?。\n]+[.!?。]+/g;
-				const sentenceRegex = /(?:^|\n|.|。)(?: {0,1})[^.!?\n。]+[.!?。]+["”」'’]*[ ]{0,1}/g;
+				
+				let sentenceEndChars = '.!?:。…·';
+				let ignoreChars = sentenceEndChars + '\\n';
+				if(plugin.settings.treatLineBreakAsSentenceEnd) {
+					sentenceEndChars += '\\n';
+					ignoreChars.replace('\\n', '');
+				}
+				
+				const sentenceRegexString = `(?:^|\n|.|。)(?: {0,1})[^${ignoreChars}]+[${sentenceEndChars}]+["”“」'’]*[ ]{0,1}`;
+				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
 				let match;
 
-				while ((match = sentenceRegex.exec(text)) !== null) {
-
-					
+				while ((match = sentenceRegex.exec(text)) !== null) {					
 					// Don't highlight:
 					// - Leading whitespace
 					// - Quote indentation (indicated by the > in markdown) 
@@ -158,7 +165,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 					const end = start + match[0].length + endOffset;
 
-					if (skipRanges.some(range => start <= range.max && end >= range.min)) {
+					if (skipRanges.some(range => start <= range.max && end > range.min)) {
 						continue;
 					}
 
@@ -195,7 +202,6 @@ export default class SentenceRhythmPlugin extends Plugin {
 						`${latinWordWithApostrophe}|[\\u4E00-\\u9FFF]|[\\u3040-\\u309F]|[\\u30A0-\\u30FF]|[\\uAC00-\\uD7A3]|[\\uF900-\\uFAFF]|[\\uFF66-\\uFF9F]`,
 						'gu'
 					);
-					//const wordRegex = /[a-zA-Z0-9\u00C0-\u00FF\u0100-\u017F]+|[\u4E00-\u9FFF]|[\u3040-\u309F]|[\u30A0-\u30FF]|[\uAC00-\uD7A3]|[\uF900-\uFAFF]|[\uFF66-\uFF9F]/gu;
 					const matches = sentence.match(wordRegex);
 					const wordCount = matches ? matches.length : 0;
 
@@ -294,8 +300,6 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			"lgThreshold": 'Long'
 		}
 
-
-
 		for (let key in thresholds) {
 			let typedKey = key as keyof SentenceRhythmPluginSettings;
 
@@ -315,7 +319,17 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			}
 		}
 
+		new Setting(containerEl).setName('Advanced settings').setHeading();
 
+		new Setting(containerEl)
+			.setName('Treat line break as sentence boundary')
+			.setDesc('Disabled by default. When disabled lines require a distinct end-of-sentence punctuation character to be highlighted')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.treatLineBreakAsSentenceEnd) 
+				.onChange(async (value) => { 
+					this.plugin.settings.treatLineBreakAsSentenceEnd = value;
+					await this.plugin.saveSettings();
+				}));
 
 
 	}
