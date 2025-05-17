@@ -165,26 +165,23 @@ export default class SentenceRhythmPlugin extends Plugin {
 					sentenceEndCharsRegex = sentenceEndCharsRegex.replace(char, '');
 				}
 
-				let regexAdditionToTreatLineBreakAsSentenceEnd = '';
-				if(plugin.settings.treatLineBreakAsSentenceEnd) {
-					regexAdditionToTreatLineBreakAsSentenceEnd = '|\\n';
-				}
-
-				const sentenceRegexString = `(.+?([${sentenceEndCharsRegex}][${quoteEndChars.join("")}]*${regexAdditionToTreatLineBreakAsSentenceEnd})+)`;
+				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1})`;
 				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {					
+
+					if(match[0].endsWith('\n') && !plugin.settings.treatLineBreakAsSentenceEnd) {
+						continue;
+					}
+
 					// Don't highlight:
 					// - Leading whitespace
-					// - Quote indentation (indicated by the > in markdown) 
-					//console.log(match[0]);
+					// - Quote indentation (indicated by the > in markdown)
 					let startOffset = match[0].length - match[0].replace(/^[\s>*]*/, '').length;
 
 					let start = match.index + startOffset;
 					let endOffset = 0 - startOffset;
-
-					
 
 					const end = start + match[0].length + endOffset;
 
@@ -193,7 +190,6 @@ export default class SentenceRhythmPlugin extends Plugin {
 					}
 
 					const sentence = match[0].trim();
-					
 
 					const latinAndNumbers = 'a-zA-Z0-9\\u00C0-\\u00FF\\u0100-\\u017F';
 					const baseLatinWord = `[${latinAndNumbers}]+`;
@@ -226,6 +222,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 						'gu'
 					);
 					const matches = sentence.match(wordRegex);
+					
 					const wordCount = matches ? matches.length : 0;
 
 					let category = '';
@@ -241,10 +238,11 @@ export default class SentenceRhythmPlugin extends Plugin {
 						category = 'xl';
 					}
 
-
-					builder.add(start, end, Decoration.mark({
-						class: `sentence-length-${category}`,
+					if(wordCount > 0) {
+						builder.add(start, end, Decoration.mark({
+							class: `sentence-length-${category}`
 					}));
+				}
 				}
 
 				return builder.finish();
