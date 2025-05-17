@@ -23,6 +23,7 @@ interface SentenceRhythmPluginSettings {
 	mdThreshold: number,
 	lgThreshold: number,
 	treatLineBreakAsSentenceEnd: boolean,
+	sentenceBoundaryExclusions: string,
 }
 
 const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
@@ -38,6 +39,7 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 	mdThreshold: 10,
 	lgThreshold: 20,
 	treatLineBreakAsSentenceEnd: false,
+	sentenceBoundaryExclusions: '',
 }
 
 export default class SentenceRhythmPlugin extends Plugin {
@@ -138,15 +140,37 @@ export default class SentenceRhythmPlugin extends Plugin {
 						},
 					});
 				}
-				
-				let sentenceEndChars = '.!?:。…·';
-				let ignoreChars = sentenceEndChars + '\\n';
-				if(plugin.settings.treatLineBreakAsSentenceEnd) {
-					sentenceEndChars += '\\n';
-					ignoreChars.replace('\\n', '');
+
+				const sentenceEndChars: string[]  = [
+					'.',
+					'?',
+					':',
+					'!',
+					'\u3002', // 。(Ideographic Full Stop)
+					'\u2026', // … (Horizontal Ellipsis)
+					'\u00B7' // · (Middle Dot)
+				];
+
+				const quoteEndChars: string[]  = [
+					'"', // (Double Quote)
+					"'", // (Single Quote)
+					"`", // (Backtick)
+					'’', // (Right Single Backtick)
+					'\u201D', // ” (Right Quote)
+					'\u3002', // 」(Right Corner Bracket)
+				];
+
+				let sentenceEndCharsRegex = sentenceEndChars.join("");
+				for (const char of plugin.settings.sentenceBoundaryExclusions.trim()) {
+					sentenceEndCharsRegex = sentenceEndCharsRegex.replace(char, '');
 				}
-				
-				const sentenceRegexString = `(?:^|\n|.|。)(?: {0,1})[^${ignoreChars}]+[${sentenceEndChars}]+["”“」'’]*[ ]{0,1}`;
+
+				let regexAdditionToTreatLineBreakAsSentenceEnd = '';
+				if(plugin.settings.treatLineBreakAsSentenceEnd) {
+					regexAdditionToTreatLineBreakAsSentenceEnd = '|\\n';
+				}
+
+				const sentenceRegexString = `(.+?([${sentenceEndCharsRegex}][${quoteEndChars.join("")}]*${regexAdditionToTreatLineBreakAsSentenceEnd})+)`;
 				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
 				let match;
 
@@ -154,14 +178,13 @@ export default class SentenceRhythmPlugin extends Plugin {
 					// Don't highlight:
 					// - Leading whitespace
 					// - Quote indentation (indicated by the > in markdown) 
-					let startOffset = match[0].length - match[0].replace(/^[\s>]*/, '').length;
+					//console.log(match[0]);
+					let startOffset = match[0].length - match[0].replace(/^[\s>*]*/, '').length;
 
 					let start = match.index + startOffset;
 					let endOffset = 0 - startOffset;
 
-					if(match[0].endsWith(' ')) {
-						endOffset--;
-					}
+					
 
 					const end = start + match[0].length + endOffset;
 
@@ -170,7 +193,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 					}
 
 					const sentence = match[0].trim();
-					//const wordCount = sentence.split(/\s+/).filter(word => word.length > 0).length;
+					
 
 					const latinAndNumbers = 'a-zA-Z0-9\\u00C0-\\u00FF\\u0100-\\u017F';
 					const baseLatinWord = `[${latinAndNumbers}]+`;
@@ -240,6 +263,10 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 	constructor(app: App, plugin: SentenceRhythmPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	async hide(): Promise<void> {
+		await this.plugin.saveSettings();
 	}
 
 	display(): void {
@@ -331,6 +358,16 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		new Setting(containerEl)
+			.setName('End-of-sentence charecter exclusions')
+			.setDesc('Specify character that should not be treated as a sentence boundary ')
+			.addText(text => text
+				.setValue(this.plugin.settings.sentenceBoundaryExclusions)
+				.onChange(async (value) => {
+					this.plugin.settings.sentenceBoundaryExclusions = value;
+					// Don't save setting here because of partial edits
+				}));
+			
 
 	}
 }
