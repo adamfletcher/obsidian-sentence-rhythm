@@ -164,14 +164,24 @@ export default class SentenceRhythmPlugin extends Plugin {
 				sentenceEndCharsRegex = sentenceEndCharsRegex.replace('.', '');
 
 				//const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1})`;
-				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1}|[.]+[${quoteEndChars.join("")}]{0,1}(?:\\s|$))`;
+				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1}|[.]+[${quoteEndChars.join("")}]{0,1}(?:[${quoteEndChars.join("")}]|\\s|$))`;
 				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {					
 
-					if(match[0].endsWith('\n') && !sentenceEndChars.contains(match[0][match[0].length - 2]) && !plugin.settings.treatLineBreakAsSentenceEnd) {
-						continue;
+					if(match[0].endsWith('\n') && !plugin.settings.treatLineBreakAsSentenceEnd) {
+						//Don't skip highlighting if there's a period then a linebreak
+						if(sentenceEndChars.contains(match[0][match[0].length - 2])) {
+							// Do nothing - don't skip highlighting
+						}
+						//Don't skip highlighting if there's a period, followed by an end quote, followed by a line break
+						else if(sentenceEndChars.contains(match[0][match[0].length - 3]) && quoteEndChars.contains(match[0][match[0].length - 2])) {
+							// Do nothing - don't skip highlighting
+						}
+						else {
+							continue;
+						}
 					}
 
 					
