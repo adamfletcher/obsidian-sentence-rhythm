@@ -1,6 +1,6 @@
 {
 	"name": "sentence-rhythm",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "Adds toggleable colored highlights to sentences based on their length so you can easily see the rhythm of your writing.",
 	"main": "main.js",
 	"scripts": {
