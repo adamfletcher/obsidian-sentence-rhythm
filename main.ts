@@ -23,7 +23,6 @@ interface SentenceRhythmPluginSettings {
 	mdThreshold: number,
 	lgThreshold: number,
 	treatLineBreakAsSentenceEnd: boolean,
-	sentenceBoundaryExclusions: string,
 }
 
 const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
@@ -39,7 +38,6 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 	mdThreshold: 10,
 	lgThreshold: 20,
 	treatLineBreakAsSentenceEnd: false,
-	sentenceBoundaryExclusions: '',
 }
 
 export default class SentenceRhythmPlugin extends Plugin {
@@ -161,19 +159,22 @@ export default class SentenceRhythmPlugin extends Plugin {
 				];
 
 				let sentenceEndCharsRegex = sentenceEndChars.join("");
-				for (const char of plugin.settings.sentenceBoundaryExclusions.trim()) {
-					sentenceEndCharsRegex = sentenceEndCharsRegex.replace(char, '');
-				}
 
-				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1})`;
+				// Treat period (.) differently as we require a space after a period to differentiate between a decimal number
+				sentenceEndCharsRegex = sentenceEndCharsRegex.replace('.', '');
+
+				//const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1})`;
+				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1}|[.]+[${quoteEndChars.join("")}]{0,1}(?:\\s|$))`;
 				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
 				let match;
 
 				while ((match = sentenceRegex.exec(text)) !== null) {					
 
-					if(match[0].endsWith('\n') && !plugin.settings.treatLineBreakAsSentenceEnd) {
+					if(match[0].endsWith('\n') && !sentenceEndChars.contains(match[0][match[0].length - 2]) && !plugin.settings.treatLineBreakAsSentenceEnd) {
 						continue;
 					}
+
+					
 
 					// Don't highlight:
 					// - Leading whitespace
@@ -182,6 +183,10 @@ export default class SentenceRhythmPlugin extends Plugin {
 
 					let start = match.index + startOffset;
 					let endOffset = 0 - startOffset;
+
+					if(match[0].endsWith(' ')) {
+						endOffset--;
+					}
 
 					const end = start + match[0].length + endOffset;
 
@@ -356,17 +361,7 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
-			.setName('End-of-sentence charecter exclusions')
-			.setDesc('Specify character that should not be treated as a sentence boundary ')
-			.addText(text => text
-				.setValue(this.plugin.settings.sentenceBoundaryExclusions)
-				.onChange(async (value) => {
-					this.plugin.settings.sentenceBoundaryExclusions = value;
-					// Don't save setting here because of partial edits
-				}));
 			
-
 	}
 }
 
