@@ -63,20 +63,20 @@ export default class SentenceRhythmPlugin extends Plugin {
 	}
 
 	updateStyles() {
-		document.documentElement.style.setProperty("--sentence-length-highlight-color-xs", this.settings.xsColor);
-		document.documentElement.style.setProperty("--sentence-length-highlight-color-sm", this.settings.smColor);
-		document.documentElement.style.setProperty("--sentence-length-highlight-color-md", this.settings.mdColor);
-		document.documentElement.style.setProperty("--sentence-length-highlight-color-lg", this.settings.lgColor);
-		document.documentElement.style.setProperty("--sentence-length-highlight-color-xl", this.settings.xlColor);
-		document.documentElement.style.setProperty("--sentence-length-highlight-text-color", this.settings.textColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-color-xs", this.settings.xsColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-color-sm", this.settings.smColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-color-md", this.settings.mdColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-color-lg", this.settings.lgColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-color-xl", this.settings.xlColor);
+		activeDocument.documentElement.style.setProperty("--sentence-length-highlight-text-color", this.settings.textColor);
 	}
 
 	onunload() {
-		document.documentElement.style.removeProperty("--sentence-length-highlight-color-xs");
-		document.documentElement.style.removeProperty("--sentence-length-highlight-color-sm");
-		document.documentElement.style.removeProperty("--sentence-length-highlight-color-md");
-		document.documentElement.style.removeProperty("--sentence-length-highlight-color-lg");
-		document.documentElement.style.removeProperty("--sentence-length-highlight-color-xl");
+		activeDocument.documentElement.style.removeProperty("--sentence-length-highlight-color-xs");
+		activeDocument.documentElement.style.removeProperty("--sentence-length-highlight-color-sm");
+		activeDocument.documentElement.style.removeProperty("--sentence-length-highlight-color-md");
+		activeDocument.documentElement.style.removeProperty("--sentence-length-highlight-color-lg");
+		activeDocument.documentElement.style.removeProperty("--sentence-length-highlight-color-xl");
 	}
 
 
@@ -88,7 +88,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 		this.forceViewUpdate = true;
-		document.body.classList.toggle('sentence-length-highlighting-active', this.settings.enabled);
+		activeDocument.body.classList.toggle('sentence-length-highlighting-active', this.settings.enabled);
 		this.app.workspace.updateOptions();
 	}
 
