@@ -359,7 +359,7 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			}
 		}
 
-		new Setting(containerEl).setName('Advanced settings').setHeading();
+		new Setting(containerEl).setName('Advanced').setHeading();
 
 		new Setting(containerEl)
 			.setName('Treat line break as sentence boundary')
