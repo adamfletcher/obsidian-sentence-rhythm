@@ -50,9 +50,9 @@ export default class SentenceRhythmPlugin extends Plugin {
 		this.addCommand({
 			id: 'toggle-sentence-highlighting',
 			name: 'Toggle highlighting',
-			callback: () => {
+			callback: async () => {
 				this.settings.enabled = !this.settings.enabled;
-				this.saveSettings();
+				await this.saveSettings();
 				new Notice(`Sentence highlighting ${this.settings.enabled ? 'enabled' : 'disabled'}`);
 			}
 		});
@@ -374,7 +374,6 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			
 	}
 }
-
 
 
 
