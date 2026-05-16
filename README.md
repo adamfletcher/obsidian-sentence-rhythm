@@ -4,6 +4,10 @@ Inspired by [Gary Provost's advice on varying sentence length](https://www.aerog
 
 ![Screenshot](assets/screenshot.png)
 
+## Installation
+
+Install via the [Obsidian Plugins Directory](https://community.obsidian.md/plugins/sentence-rhythm)
+
 ## How to use
 
 Once the plugin is installed you can toggle the highlighting on and off from the command palette or plugin settings. 
