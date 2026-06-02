@@ -9,6 +9,8 @@ import {
 } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
+import { DEFAULT_PERIOD_EXCLUSIONS, formatPeriodExclusions, parsePeriodExclusions } from './src/exclusion-settings';
+import { findSentenceRanges } from './src/sentence-boundaries';
 
 interface SentenceRhythmPluginSettings {
 	xsColor: string,
@@ -23,6 +25,8 @@ interface SentenceRhythmPluginSettings {
 	mdThreshold: number,
 	lgThreshold: number,
 	treatLineBreakAsSentenceEnd: boolean,
+	periodExclusionsEnabled: boolean,
+	periodExclusions: string[],
 }
 
 const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
@@ -38,6 +42,8 @@ const DEFAULT_SETTINGS: SentenceRhythmPluginSettings = {
 	mdThreshold: 10,
 	lgThreshold: 20,
 	treatLineBreakAsSentenceEnd: false,
+	periodExclusionsEnabled: false,
+	periodExclusions: DEFAULT_PERIOD_EXCLUSIONS,
 }
 
 export default class SentenceRhythmPlugin extends Plugin {
@@ -139,106 +145,21 @@ export default class SentenceRhythmPlugin extends Plugin {
 					});
 				}
 
-				const sentenceEndChars: string[]  = [
-					'.',
-					'?',
-					':',
-					'!',
-					'\u3002', // 。(Ideographic Full Stop)
-					'\u2026', // … (Horizontal Ellipsis)
-					'\u00B7' // · (Middle Dot)
-				];
+				const sentences = findSentenceRanges(text, {
+					treatLineBreakAsSentenceEnd: plugin.settings.treatLineBreakAsSentenceEnd,
+					periodExclusionsEnabled: plugin.settings.periodExclusionsEnabled,
+					periodExclusions: plugin.settings.periodExclusions,
+				});
 
-				const quoteEndChars: string[]  = [
-					'"', // (Double Quote)
-					"'", // (Single Quote)
-					"`", // (Backtick)
-					'’', // (Right Single Backtick)
-					'\u201D', // ” (Right Quote)
-					'\u3002', // 」(Right Corner Bracket)
-				];
-
-				let sentenceEndCharsRegex = sentenceEndChars.join("");
-
-				// Treat period (.) differently as we require a space after a period to differentiate between a decimal number
-				sentenceEndCharsRegex = sentenceEndCharsRegex.replace('.', '');
-
-				//const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1})`;
-				const sentenceRegexString = `.+?(?:\\n|[${sentenceEndCharsRegex}]+[${quoteEndChars.join("")}]{0,1}|[.]+[${quoteEndChars.join("")}]{0,1}(?:[${quoteEndChars.join("")}]|\\s|$))`;
-				const sentenceRegex = new RegExp(sentenceRegexString, 'g');
-				let match;
-
-				while ((match = sentenceRegex.exec(text)) !== null) {					
-
-					if(match[0].endsWith('\n') && !plugin.settings.treatLineBreakAsSentenceEnd) {
-						//Don't skip highlighting if there's a period then a linebreak
-						if(sentenceEndChars.contains(match[0][match[0].length - 2])) {
-							// Do nothing - don't skip highlighting
-						}
-						//Don't skip highlighting if there's a period, followed by an end quote, followed by a line break
-						else if(sentenceEndChars.contains(match[0][match[0].length - 3]) && quoteEndChars.contains(match[0][match[0].length - 2])) {
-							// Do nothing - don't skip highlighting
-						}
-						else {
-							continue;
-						}
-					}
-
-					
-
-					// Don't highlight:
-					// - Leading whitespace
-					// - Quote indentation (indicated by the > in markdown)
-					let startOffset = match[0].length - match[0].replace(/^[\s>*]*/, '').length;
-
-					let start = match.index + startOffset;
-					let endOffset = 0 - startOffset;
-
-					if(match[0].endsWith(' ')) {
-						endOffset--;
-					}
-
-					const end = start + match[0].length + endOffset;
+				for (const sentence of sentences) {
+					const start = sentence.start;
+					const end = sentence.end;
 
 					if (skipRanges.some(range => start <= range.max && end > range.min)) {
 						continue;
 					}
 
-					const sentence = match[0].trim();
-
-					const latinAndNumbers = 'a-zA-Z0-9\\u00C0-\\u00FF\\u0100-\\u017F';
-					const baseLatinWord = `[${latinAndNumbers}]+`;
-					const latinWordWithApostrophe = `${baseLatinWord}(?:['’]${baseLatinWord})*`;
-
-					// Regular Expression Breakdown:
-					// ${latinWordWithApostrophe} : Matches one or more Latin/number chars, optionally followed by
-					//                              an apostrophe and more Latin/number chars (handles "it's", "O'Malley").
-					//                              (?:...) is a non-capturing group.
-					//                              * means the apostrophe part can appear zero or more times (handles "rock'n'roll").
-					// | : OR
-					// [\u4E00-\u9FFF] : Matches a CJK Unified Ideograph (most common Chinese, Japanese Kanji, Korean Hanja)
-					// | : OR
-					// [\u3040-\u309F] : Matches a Hiragana character (Japanese)
-					// | : OR
-					// [\u30A0-\u30FF] : Matches a Katakana character (Japanese)
-					// | : OR
-					// [\uAC00-\uD7A3] : Matches a Hangul Syllable (Korean)
-					// | : OR
-					// [\uF900-\uFAFF] : Matches a CJK Compatibility Ideograph
-					// | : OR
-					// [\uFF66-\uFF9F] : Matches Halfwidth Katakana (Japanese)
-					//
-					// Flags:
-					// g: Global match (find all occurrences)
-					// u: Unicode support (essential for matching characters outside the Basic Multilingual Plane and proper range interpretation)
-
-					const wordRegex = new RegExp(
-						`${latinWordWithApostrophe}|[\\u4E00-\\u9FFF]|[\\u3040-\\u309F]|[\\u30A0-\\u30FF]|[\\uAC00-\\uD7A3]|[\\uF900-\\uFAFF]|[\\uFF66-\\uFF9F]`,
-						'gu'
-					);
-					const matches = sentence.match(wordRegex);
-					
-					const wordCount = matches ? matches.length : 0;
+					const wordCount = sentence.wordCount;
 
 					let category = '';
 					if (wordCount <= plugin.settings.xsThreshold) {
@@ -253,11 +174,9 @@ export default class SentenceRhythmPlugin extends Plugin {
 						category = 'xl';
 					}
 
-					if(wordCount > 0) {
-						builder.add(start, end, Decoration.mark({
-							class: `sentence-length-${category}`
+					builder.add(start, end, Decoration.mark({
+						class: `sentence-length-${category}`
 					}));
-				}
 				}
 
 				return builder.finish();
@@ -371,10 +290,29 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-			
-	}
-}
+		new Setting(containerEl)
+			.setName('Enable period exclusions')
+			.setDesc('Disabled by default. When enabled, listed words followed by a period do not create a sentence boundary.')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.periodExclusionsEnabled)
+				.onChange(async (value) => {
+					this.plugin.settings.periodExclusionsEnabled = value;
+					await this.plugin.saveSettings();
+				}));
 
+		new Setting(containerEl)
+			.setName('Period exclusions')
+			.setDesc('One word per line, without the trailing period. Matching is case sensitive.')
+			.addTextArea(text => text
+				.setValue(formatPeriodExclusions(this.plugin.settings.periodExclusions))
+				.onChange(async (value) => {
+					this.plugin.settings.periodExclusions = parsePeriodExclusions(value);
+					await this.plugin.saveSettings();
+				}));
+
+			
+		}
+}
 
 
 
