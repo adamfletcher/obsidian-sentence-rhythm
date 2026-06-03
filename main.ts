@@ -10,7 +10,7 @@ import {
 import { RangeSetBuilder } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 import { DEFAULT_PERIOD_EXCLUSIONS, formatPeriodExclusions, parsePeriodExclusions } from './src/exclusion-settings';
-import { findSentenceRanges } from './src/sentence-boundaries';
+import { getSentenceHighlights, NumberRange } from './src/highlight-categories';
 
 interface SentenceRhythmPluginSettings {
 	xsColor: string,
@@ -126,11 +126,6 @@ export default class SentenceRhythmPlugin extends Plugin {
 				const text = view.state.doc.toString();
 
 				// Skip highlighting inside code blocks, comments, etc.
-
-				interface NumberRange {
-					min: number;
-					max: number;
-				}
 				const skipRanges: NumberRange[] = [];
 
 				for (let { from, to } of view.visibleRanges) {
@@ -145,37 +140,20 @@ export default class SentenceRhythmPlugin extends Plugin {
 					});
 				}
 
-				const sentences = findSentenceRanges(text, {
+				const highlights = getSentenceHighlights(text, {
+					enabled: plugin.settings.enabled,
 					treatLineBreakAsSentenceEnd: plugin.settings.treatLineBreakAsSentenceEnd,
 					periodExclusionsEnabled: plugin.settings.periodExclusionsEnabled,
 					periodExclusions: plugin.settings.periodExclusions,
-				});
+					xsThreshold: plugin.settings.xsThreshold,
+					smThreshold: plugin.settings.smThreshold,
+					mdThreshold: plugin.settings.mdThreshold,
+					lgThreshold: plugin.settings.lgThreshold,
+				}, skipRanges);
 
-				for (const sentence of sentences) {
-					const start = sentence.start;
-					const end = sentence.end;
-
-					if (skipRanges.some(range => start <= range.max && end > range.min)) {
-						continue;
-					}
-
-					const wordCount = sentence.wordCount;
-
-					let category = '';
-					if (wordCount <= plugin.settings.xsThreshold) {
-						category = 'xs';
-					} else if (wordCount <= plugin.settings.smThreshold) {
-						category = 'sm';
-					} else if (wordCount <= plugin.settings.mdThreshold) {
-						category = 'md';
-					} else if (wordCount <= plugin.settings.lgThreshold) {
-						category = 'lg';
-					} else {
-						category = 'xl';
-					}
-
-					builder.add(start, end, Decoration.mark({
-						class: `sentence-length-${category}`
+				for (const highlight of highlights) {
+					builder.add(highlight.start, highlight.end, Decoration.mark({
+						class: highlight.className
 					}));
 				}
 
@@ -320,5 +298,4 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			
 		}
 }
-
 

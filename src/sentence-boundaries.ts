@@ -69,7 +69,7 @@ export function findSentenceRanges(text: string, options: SentenceBoundaryOption
 
 		const rawSentence = text.slice(sentenceStart, sentenceRegex.lastIndex);
 		const startOffset = rawSentence.length - rawSentence.replace(/^[\s>*]*/, '').length;
-		let endOffset = 0 - startOffset;
+		let endOffset = 0;
 
 		if (rawSentence.endsWith(' ')) {
 			endOffset--;
@@ -77,7 +77,7 @@ export function findSentenceRanges(text: string, options: SentenceBoundaryOption
 
 		const start = sentenceStart + startOffset;
 		const end = sentenceStart + rawSentence.length + endOffset;
-		const sentenceText = rawSentence.trim();
+		const sentenceText = text.slice(start, end).trim();
 		const wordCount = countWords(sentenceText);
 
 		if (wordCount > 0) {
