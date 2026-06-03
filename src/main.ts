@@ -9,8 +9,8 @@ import {
 } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
-import { DEFAULT_PERIOD_EXCLUSIONS, formatPeriodExclusions, parsePeriodExclusions } from './src/exclusion-settings';
-import { getSentenceHighlights, NumberRange } from './src/highlight-categories';
+import { DEFAULT_PERIOD_EXCLUSIONS, formatPeriodExclusions, parsePeriodExclusions } from './exclusion-settings';
+import { getSentenceHighlights, NumberRange } from './highlight-categories';
 
 interface SentenceRhythmPluginSettings {
 	xsColor: string,
@@ -298,4 +298,3 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			
 		}
 }
-
