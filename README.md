@@ -18,8 +18,6 @@ From the plugin settings you can customize the size thresholds for each category
 
 ### Advanced customization
 
-Period exclusions can be enabled from Advanced settings. When enabled, words in the exclusion list do not create a sentence boundary when followed by a period. Add one word per line without the trailing period; matching is case sensitive and only applies to the whole word immediately before the period. The setting is disabled by default so existing highlighting behavior is preserved after update.
-
 When active, the plugin applies one of the following CSS classes to each sentence depending on its length, which can be customized in your user stylesheet. 
 
 * .sentence-length-xs
