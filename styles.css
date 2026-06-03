@@ -42,3 +42,8 @@ body {
   .cm-focused .cm-selectionBackground .sentence-highlight {
       background-color: inherit !important;
   }
+
+  .sentence-length-period-exclusions {
+      min-height: 10rem;
+      width: 100%;
+  }

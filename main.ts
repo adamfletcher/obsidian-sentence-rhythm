@@ -291,8 +291,12 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Enable period exclusions')
-			.setDesc('Disabled by default. When enabled, listed words followed by a period do not create a sentence boundary.')
+			.setName('Exclusions')
+			.setDesc('Words that should not be treated as a sentence boundary. For example "Mrs."')
+			.setHeading();
+
+		new Setting(containerEl)
+			.setName('Enable exclusions')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.periodExclusionsEnabled)
 				.onChange(async (value) => {
@@ -301,10 +305,13 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Period exclusions')
+			.setName('Exclusions')
 			.setDesc('One word per line, without the trailing period. Matching is case sensitive.')
 			.addTextArea(text => text
 				.setValue(formatPeriodExclusions(this.plugin.settings.periodExclusions))
+				.then(textArea => {
+					textArea.inputEl.addClass('sentence-length-period-exclusions');
+				})
 				.onChange(async (value) => {
 					this.plugin.settings.periodExclusions = parsePeriodExclusions(value);
 					await this.plugin.saveSettings();
@@ -313,6 +320,5 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 			
 		}
 }
-
 
 
