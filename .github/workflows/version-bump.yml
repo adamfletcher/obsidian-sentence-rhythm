@@ -1,0 +1,93 @@
+name: Bump plugin version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version component to bump
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Check branch and credentials
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]]; then
+            echo "::error::Run this workflow on the default branch ($DEFAULT_BRANCH)."
+            exit 1
+          fi
+          if [[ -z "$RELEASE_TOKEN" ]]; then
+            echo "::error::Add the RELEASE_TOKEN repository secret with Contents read/write access."
+            exit 1
+          fi
+
+      # A PAT is required so the tag push triggers release.yml.
+      - name: Check out the latest default branch and tags
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          case "$BUMP" in
+            patch|minor|major) ;;
+            *) echo "::error::Invalid version component: $BUMP"; exit 1 ;;
+          esac
+          npm version "$BUMP" --no-git-tag-version --ignore-scripts
+          npm run version
+          version=$(node -p "require('./package.json').version")
+          if git show-ref --verify --quiet "refs/tags/$version"; then
+            echo "::error::Tag $version already exists."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Commit and tag version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json manifest.json versions.json
+          git commit -m "chore: release $VERSION"
+          git tag -a "$VERSION" -m "$VERSION"
+
+      - name: Push commit and tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: git push --atomic origin "HEAD:refs/heads/$DEFAULT_BRANCH" "refs/tags/$VERSION:refs/tags/$VERSION"
