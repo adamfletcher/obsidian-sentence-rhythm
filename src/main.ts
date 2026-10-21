@@ -99,26 +99,24 @@ export default class SentenceRhythmPlugin extends Plugin {
 	}
 
 	createViewPlugin() {
-		const plugin = this;
-
 		class SentenceLengthViewPlugin implements PluginValue {
 			decorations: DecorationSet;
 
-			constructor(view: EditorView) {
+			constructor(view: EditorView, private readonly plugin: SentenceRhythmPlugin) {
 				this.decorations = this.buildDecorations(view);
 			}
 
 			update(update: ViewUpdate) {
 				
-				if (update.docChanged || update.viewportChanged || plugin.forceViewUpdate) {
+				if (update.docChanged || update.viewportChanged || this.plugin.forceViewUpdate) {
 					this.decorations = this.buildDecorations(update.view);
-					plugin.forceViewUpdate = false;
+					this.plugin.forceViewUpdate = false;
 				}
 			}
 
 			buildDecorations(view: EditorView): DecorationSet {
 
-				if (!plugin.settings.enabled) {
+				if (!this.plugin.settings.enabled) {
 					return Decoration.none;
 				}
 
@@ -141,14 +139,14 @@ export default class SentenceRhythmPlugin extends Plugin {
 				}
 
 				const highlights = getSentenceHighlights(text, {
-					enabled: plugin.settings.enabled,
-					treatLineBreakAsSentenceEnd: plugin.settings.treatLineBreakAsSentenceEnd,
-					periodExclusionsEnabled: plugin.settings.periodExclusionsEnabled,
-					periodExclusions: plugin.settings.periodExclusions,
-					xsThreshold: plugin.settings.xsThreshold,
-					smThreshold: plugin.settings.smThreshold,
-					mdThreshold: plugin.settings.mdThreshold,
-					lgThreshold: plugin.settings.lgThreshold,
+					enabled: this.plugin.settings.enabled,
+					treatLineBreakAsSentenceEnd: this.plugin.settings.treatLineBreakAsSentenceEnd,
+					periodExclusionsEnabled: this.plugin.settings.periodExclusionsEnabled,
+					periodExclusions: this.plugin.settings.periodExclusions,
+					xsThreshold: this.plugin.settings.xsThreshold,
+					smThreshold: this.plugin.settings.smThreshold,
+					mdThreshold: this.plugin.settings.mdThreshold,
+					lgThreshold: this.plugin.settings.lgThreshold,
 				}, skipRanges);
 
 				for (const highlight of highlights) {
@@ -161,7 +159,7 @@ export default class SentenceRhythmPlugin extends Plugin {
 			}
 		}
 
-		return ViewPlugin.fromClass(SentenceLengthViewPlugin, {
+		return ViewPlugin.define(view => new SentenceLengthViewPlugin(view, this), {
 			decorations: (value: SentenceLengthViewPlugin) => value.decorations,
 		});
 	}
@@ -175,8 +173,11 @@ class SetenceLengthSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	async hide(): Promise<void> {
-		await this.plugin.saveSettings();
+	hide(): void {
+		this.plugin.saveSettings().catch((error: unknown) => {
+			console.error("Sentence Rhythm: failed to save settings", error);
+			new Notice("Sentence Rhythm: failed to save settings. Check the console for details.");
+		});
 	}
 
 	display(): void {

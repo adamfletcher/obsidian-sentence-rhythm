@@ -34,15 +34,6 @@ body {
     color: var(--sentence-length-highlight-text-color);
 }
   
-  /* Ensure highlights don't interfere too much with selection - this can likely remain unchanged */
-  .cm-selectionBackground .sentence-highlight {
-      background-color: inherit !important;
-  }
-  
-  .cm-focused .cm-selectionBackground .sentence-highlight {
-      background-color: inherit !important;
-  }
-
   .sentence-length-period-exclusions {
       min-height: 10rem;
       width: 100%;
